@@ -14,11 +14,7 @@ fn find_common(s: &str) -> i32 {
 fn get_value(s: char) -> i32 {
     // Lowercase item types a through z have priorities 1 through 26.
     // Uppercase item types A through Z have priorities 27 through 52.
-    let vals: HashMap<char, i32> = ('a'..='z')
-        .into_iter()
-        .chain(('A'..='Z').into_iter())
-        .zip(1..=52)
-        .collect();
+    let vals: HashMap<char, i32> = ('a'..='z').chain('A'..='Z').zip(1..=52).collect();
 
     vals[&s]
 }
