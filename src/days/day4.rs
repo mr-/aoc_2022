@@ -1,11 +1,13 @@
+
 use std::fs;
+use itertools::Itertools;
 type SectionPair = ((i32, i32), (i32, i32));
 
 
 fn parse_line(s : &str) -> Option<SectionPair> {
     let (p1, p2)   = match s.split(",").collect::<Vec<&str>>()[..] { [a,b] => Some((a,b)), _ => None }?;
-    let (p11, p12) = match p1.split("-").collect::<Vec<&str>>()[..] { [a,b] => Some((a,b)), _ => None }?;
-    let (p21, p22) = match p2.split("-").collect::<Vec<&str>>()[..] { [a,b] => Some((a,b)), _ => None }?;
+    let [p11, p12] = p1.split("-").collect::<Vec<&str>>()[..] else { return None };
+    let (p21, p22) = p2.split("-").collect_tuple()?;
 
     return Some(((p11.parse().ok()?, p12.parse().ok()?), (p21.parse().ok()?, p22.parse().ok()?)));
 }
