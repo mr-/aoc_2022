@@ -21,7 +21,7 @@ pub fn solution() {
         (("C", "Z"), 3+3),
     ]);
 
-    let contents = fs::read_to_string("./02.txt")
+    let contents = fs::read_to_string("./input/02.txt")
         .expect("Should have been able to read the file");
 
     let s :Vec<Vec<&str>>= contents

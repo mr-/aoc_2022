@@ -26,7 +26,7 @@ fn is_overlap(p : SectionPair) -> bool {
 }
 
 fn parse_file() -> Vec<SectionPair> {
-    let contents = fs::read_to_string("./04.txt")
+    let contents = fs::read_to_string("./input/04.txt")
         .expect("Should have been able to read the file");
     let intervals = contents.split("\n")
         .filter_map(parse_line)

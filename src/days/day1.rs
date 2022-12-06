@@ -1,7 +1,7 @@
 use std::fs;
 
 pub fn solution() {
-    let contents = fs::read_to_string("./01.txt")
+    let contents = fs::read_to_string("./input/01.txt")
         .expect("Should have been able to read the file");
     let s :Vec<Vec<&str>>= contents.split("\n\n").map(|x| x.split("\n").collect()).collect();
     let bags : Vec<Vec<i32>> = s.into_iter()

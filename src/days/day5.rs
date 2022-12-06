@@ -61,7 +61,7 @@ pub fn solution1() {
         VecDeque::from(['Q', 'L', 'H', 'C', 'R', 'N', 'M', 'G' ]),
         VecDeque::from(['W', 'L', 'C']),
         VecDeque::from(['T', 'M', 'Z', 'J', 'Q', 'L', 'D', 'R'])]);
-    let contents = fs::read_to_string("./05.txt")
+    let contents = fs::read_to_string("./input/05.txt")
         .expect("Should have been able to read the file");
 
     let moves = contents.split("\n")
@@ -91,7 +91,7 @@ pub fn solution2() {
         VecDeque::from(['Q', 'L', 'H', 'C', 'R', 'N', 'M', 'G' ]),
         VecDeque::from(['W', 'L', 'C']),
         VecDeque::from(['T', 'M', 'Z', 'J', 'Q', 'L', 'D', 'R'])]);
-    let contents = fs::read_to_string("./05.txt")
+    let contents = fs::read_to_string("./input/05.txt")
         .expect("Should have been able to read the file");
 
     let moves = contents.split("\n")

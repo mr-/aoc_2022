@@ -45,7 +45,7 @@ fn get_badges(bags : Vec<&str>) -> i32 {
 }
 
 pub fn solution() {
-    let contents = fs::read_to_string("./03.txt")
+    let contents = fs::read_to_string("./input/03.txt")
         .expect("Should have been able to read the file");
     let sol1 : i32 = contents.split("\n")
         .filter(|x| x.len() > 1)

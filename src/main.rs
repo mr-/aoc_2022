@@ -8,7 +8,12 @@ use crate::days::day5::solution1 as s51;
 use crate::days::day5::solution2 as s52;
 use crate::days::day6::solution as s6;
 
-
 fn main() {
+    s1();
+    s2();
+    s3();
+    s4();
+    s51();
+    s52();
     s6()
 }
