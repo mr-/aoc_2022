@@ -95,10 +95,12 @@ pub fn solution() {
     let block = parse_file(input.as_str());
 
     let mut levels = Vec::new();
-    let mut foo = block.into_iter().rev().collect::<Vec<Cmd>>().clone();
-    to_file_list(&mut foo, Vec::new(), &mut levels);
-    let slist = to_size_list(levels);
-    let accum = to_accum_size_list(slist);
+    let mut commands = block.into_iter().rev().collect::<Vec<Cmd>>().clone();
+    to_file_list(&mut commands, Vec::new(), &mut levels);
+    let accum = to_accum_size_list(to_size_list(levels));
+
+    // Only data preparation up to here..
+
     let s: usize = accum
         .clone()
         .into_iter()
@@ -110,14 +112,16 @@ pub fn solution() {
     let total_space: usize = 70000000;
     let required_space: usize = 30000000;
     let total_used_space = accum[0].1;
-
     let min_to_delete = required_space - (total_space - total_used_space);
+
     println!("We need to delete at least {:?}", min_to_delete);
+
     let mut big_enough = accum
         .clone()
         .into_iter()
         .filter(|(_, s)| s >= &min_to_delete)
         .collect::<Vec<(Path, usize)>>();
     big_enough.sort_by(|a, b| a.1.cmp(&b.1));
+
     println!("sol2: {:?}", big_enough[0])
 }
