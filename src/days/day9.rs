@@ -3,7 +3,7 @@ use std::collections::{HashMap, HashSet};
 use std::fs;
 use std::mem::replace;
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub enum Dir {
     U,
     D,
@@ -53,7 +53,7 @@ fn touches(head: &Point, tail: &Point) -> bool {
     }
 }
 
-fn do_step(seen: &mut Field, head: &mut Point, tail: &mut Point, dir: &Dir) {
+fn do_move(head: &mut Point, dir: &Dir) {
     let v: Point = match dir {
         Dir::U => (0, 1),
         Dir::D => (0, -1),
@@ -61,13 +61,20 @@ fn do_step(seen: &mut Field, head: &mut Point, tail: &mut Point, dir: &Dir) {
         Dir::R => (1, 0),
     };
     replace(head, add(head, &v));
+}
+
+fn do_follow(head: &Point, tail: &mut Point) -> bool {
     if touches(&head, &tail) {
-        return;
+        return false;
     }
 
     let d = (head.0 - tail.0, head.1 - tail.1);
 
     let new_tail = match d {
+        (-2, -2) => add(head, &(1, 1)),
+        (2, -2) => add(head, &(-1, 1)),
+        (-2, 2) => add(head, &(1, -1)),
+        (2, 2) => add(head, &(-1, -1)),
         (-2, _) => add(head, &(1, 0)),
         (2, _) => add(head, &(-1, 0)),
         (_, 2) => add(head, &(0, -1)),
@@ -75,8 +82,8 @@ fn do_step(seen: &mut Field, head: &mut Point, tail: &mut Point, dir: &Dir) {
         _ => panic!("crash and burn"),
     };
 
-    seen.insert(new_tail);
     replace(tail, new_tail);
+    return true;
 }
 
 fn step(state: &mut State, cmd: Cmd) {
@@ -86,16 +93,48 @@ fn step(state: &mut State, cmd: Cmd) {
     }
 
     let mut head = replace(&mut state.rope[0], (0, 0));
-    let mut tail = replace(&mut state.rope[1], (0, 0));
-    // move head
-    // follow tail1
-    // follow tail2
-    // follow tail3..
-    do_step(&mut state.seen, &mut head, &mut tail, &dir);
+    do_move(&mut head, &dir);
+    state.rope[0] = head;
+    for i in 0..=state.rope.len() - 2 {
+        let mut tail = replace(&mut state.rope[i + 1], (0, 0));
+        do_follow(&state.rope[i], &mut tail);
+        state.rope[i + 1] = tail;
+    }
 
-    replace(&mut state.rope[0], head);
-    replace(&mut state.rope[1], tail);
+    state.seen.insert(state.rope[state.rope.len() - 1]);
+
     step(state, (dir, steps - 1))
+}
+
+fn pp_seen(seen: &Field, rope: &Vec<Point>) {
+    let (s1, s2): (Vec<i32>, Vec<i32>) = seen
+        .clone()
+        .into_iter()
+        .chain(rope.clone().into_iter())
+        .unzip();
+
+    let (min1, max1) = (s1.iter().min().unwrap(), s1.iter().max().unwrap());
+    let (min2, max2) = (s2.iter().min().unwrap(), s2.iter().max().unwrap());
+    let rope_points = rope
+        .into_iter()
+        .zip((0..rope.len()))
+        .collect::<HashMap<&Point, usize>>();
+
+    for j in (*min2..=*max2).rev() {
+        for i in *min1..=*max1 {
+            if rope_points.contains_key(&(i, j)) {
+                print!("{:?}", rope_points[&(i, j)]);
+                continue;
+            }
+            if seen.contains(&(i, j)) {
+                print!("#")
+            } else {
+                print!("*")
+            }
+        }
+        println!();
+    }
+    println!();
 }
 
 pub fn solution() {
@@ -107,16 +146,45 @@ R 4
 D 1
 L 5
 R 2";
+    let input = "R 5
+U 8
+L 8
+D 3
+R 17
+D 10
+L 25
+U 20";
 
     let input =
-        fs::read_to_string("./input/09.txt").expect("Should have been able to read the file");
-    let cmds = parse_file(input.as_str());
+        &fs::read_to_string("./input/09.txt").expect("Should have been able to read the file");
+    let cmds = parse_file(input);
+
     let mut state = State {
         seen: HashSet::<Point>::from([(0, 0)]),
         rope: Vec::from([(0, 0), (0, 0)]),
     };
+    for cmd in cmds.clone() {
+        step(&mut state, cmd);
+    }
+    println!("sol1: {:?}", state.seen.len());
+
+    let mut state = State {
+        seen: HashSet::<Point>::from([(0, 0)]),
+        rope: Vec::from([
+            (0, 0),
+            (0, 0),
+            (0, 0),
+            (0, 0),
+            (0, 0),
+            (0, 0),
+            (0, 0),
+            (0, 0),
+            (0, 0),
+            (0, 0),
+        ]),
+    };
     for cmd in cmds {
         step(&mut state, cmd);
     }
-    println!("{:?}", state.seen.len())
+    println!("sol2: {:?}", state.seen.len());
 }
