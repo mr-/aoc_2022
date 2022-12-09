@@ -11,7 +11,8 @@ use crate::days::day5::solution2 as s52;
 use crate::days::day6::solution as s6;
 use crate::days::day7::solution as s7;
 use crate::days::day8::solution as s8;
+use crate::days::day9::solution as s9;
 
 fn main() {
-    s8()
+    s9()
 }

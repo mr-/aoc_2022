@@ -32,7 +32,7 @@ fn scenic_score(grid: &Grid, p: &Point) -> u32 {
     let a = (0..p.0)
         .rev()
         .map(|x| (x, p.1))
-        .take_while(|q| grid.2[&q] < tree_size)
+        .take_while(|q| grid.2[q] < tree_size)
         .collect::<Vec<Point>>();
     let ca = a.len() as u32
         + if a.len() > 0 && a[a.len() - 1].0 == 0 {
