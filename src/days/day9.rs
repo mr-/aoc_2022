@@ -83,6 +83,7 @@ fn do_follow(head: &Point, tail: &mut Point) -> bool {
     };
 
     replace(tail, new_tail);
+
     return true;
 }
 
@@ -117,7 +118,7 @@ fn pp_seen(seen: &Field, rope: &Vec<Point>) {
     let (min2, max2) = (s2.iter().min().unwrap(), s2.iter().max().unwrap());
     let rope_points = rope
         .into_iter()
-        .zip((0..rope.len()))
+        .zip(0..rope.len())
         .collect::<HashMap<&Point, usize>>();
 
     for j in (*min2..=*max2).rev() {

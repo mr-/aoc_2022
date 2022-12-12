@@ -182,7 +182,7 @@ fn play_round(seen: &mut HashMap<usize, u64>, monkeys: &mut Vec<Monkey>, modulo:
                 .unwrap();
             let mut target = mem::take(&mut monkeys[target_id as usize]);
             target.items.push_back(level);
-            mem::replace(&mut monkeys[target_id as usize], target);
+            monkeys[target_id as usize] = target;
 
             if seen.contains_key(&source_id) {
                 seen.insert(source_id, seen[&source_id] + 1);
@@ -191,6 +191,6 @@ fn play_round(seen: &mut HashMap<usize, u64>, monkeys: &mut Vec<Monkey>, modulo:
             }
         }
 
-        replace(&mut monkeys[source_id], monkey);
+        monkeys[source_id] = monkey;
     }
 }
