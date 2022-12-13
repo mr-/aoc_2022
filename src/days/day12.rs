@@ -1,4 +1,5 @@
 use itertools::Itertools;
+use pathfinding::prelude::astar;
 use pathfinding::prelude::bfs;
 use std::collections::HashMap;
 use std::fs;
@@ -30,7 +31,7 @@ fn parse_file(input: &str) -> (Map, Point, Point, i32, i32) {
     }
     return (map, start, end, lines[0].len() as i32, lines.len() as i32);
 }
-fn successors(map: &Map, p: &Point) -> Vec<Point> {
+fn successors(target: &Point, map: &Map, p: &Point) -> Vec<(Point, i32)> {
     let &Point(x, y) = p;
     vec![
         Point(x + 1, y),
@@ -45,8 +46,14 @@ fn successors(map: &Map, p: &Point) -> Vec<Point> {
     // 4 -> 5
     // 4 -> 4
     // 4 -> 3
-    .filter(|q| map.contains_key(q) && map[p] + 1 >= map[q])
+    .filter(|q| map.contains_key(q))
+    .filter(|q| map[p] + 1 >= map[q])
+    .map(|q| (q.clone(), dist(&q, target)))
     .collect()
+}
+
+fn dist(a: &Point, b: &Point) -> i32 {
+    (a.0 - b.0).pow(2) + (a.1 - b.1).pow(2)
 }
 
 pub fn solution() {
@@ -60,8 +67,13 @@ abdefghi";
         &fs::read_to_string("./input/12.txt").expect("Should have been able to read the file");
     let (map, start, end, mx, my) = parse_file(input);
 
-    let result = bfs(&start, |p| successors(&map, p), |p| *p == end);
-    println!("sol1: {:?}", result.map(|v| v.len() - 1));
+    let result = astar(
+        &start,
+        |p| successors(&end, &map, p),
+        |p| dist(&end, p),
+        |p| *p == end,
+    );
+    println!("sol1: {:?}", result.map(|v| v.0.len() - 1));
 
     let starting_points: Vec<Point> = map
         .clone()
@@ -71,8 +83,15 @@ abdefghi";
         .collect();
     let paths = starting_points
         .into_iter()
-        .filter_map(|start| bfs(&start, |p| successors(&map, p), |p| *p == end))
-        .map(|v| v.len() - 1)
+        .filter_map(|start| {
+            astar(
+                &start,
+                |p| successors(&end, &map, p),
+                |p| dist(&end, p),
+                |p| *p == end,
+            )
+        })
+        .map(|v| v.0.len() - 1)
         .sorted()
         .collect::<Vec<usize>>();
     println!("sol2: {:?}", paths)

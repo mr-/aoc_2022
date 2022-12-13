@@ -79,13 +79,7 @@ fn compare(left: List, right: List) -> Ordering {
                     return o;
                 }
             }
-            if r.len() < l.len() {
-                return Greater;
-            }
-            if r.len() > l.len() {
-                return Less;
-            }
-            Equal
+            l.len().cmp(&r.len())
         }
     }
 }
