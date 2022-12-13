@@ -60,7 +60,8 @@ fn do_move(head: &mut Point, dir: &Dir) {
         Dir::L => (-1, 0),
         Dir::R => (1, 0),
     };
-    replace(head, add(head, &v));
+    let new_head: Point = add(head, &v);
+    *head = new_head;
 }
 
 fn do_follow(head: &Point, tail: &mut Point) -> bool {
@@ -79,11 +80,10 @@ fn do_follow(head: &Point, tail: &mut Point) -> bool {
         (2, _) => add(head, &(-1, 0)),
         (_, 2) => add(head, &(0, -1)),
         (_, -2) => add(head, &(0, 1)),
-        _ => panic!("crash and burn"),
+        _ => panic!("cra and burn"),
     };
 
-    replace(tail, new_tail);
-
+    *tail = new_tail;
     return true;
 }
 

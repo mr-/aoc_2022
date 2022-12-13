@@ -8,6 +8,9 @@ struct Point(i32, i32);
 type Map = HashMap<Point, i32>;
 
 fn parse_file(input: &str) -> (Map, Point, Point, i32, i32) {
+    let mut vals: HashMap<char, i32> = ('a'..='z').zip(1..=26).collect();
+    vals.insert('S', 1);
+    vals.insert('E', 26);
     let mut start: Point = Point(0, 0);
     let mut end: Point = Point(0, 0);
     let mut map: HashMap<Point, i32> = HashMap::new();
@@ -15,9 +18,6 @@ fn parse_file(input: &str) -> (Map, Point, Point, i32, i32) {
     for y in 0..lines.len() {
         let cs = lines[y].chars().collect::<Vec<char>>();
         for x in 0..cs.len() {
-            let mut vals: HashMap<char, i32> = ('a'..='z').zip(1..=26).collect();
-            vals.insert('S', 1);
-            vals.insert('E', 26);
             let p = Point(x as i32, y as i32);
             map.insert(p.clone(), vals[&cs[x]]);
             if cs[x] == 'S' {
