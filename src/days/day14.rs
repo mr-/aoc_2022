@@ -44,10 +44,7 @@ fn range(a: i32, b: i32) -> Vec<i32> {
 }
 
 fn explode((ax, ay): &Point, (bx, by): &Point) -> Vec<Point> {
-    println!("explode {:?} -> {:?}", (ax, ay), (bx, by));
-    let l = iproduct!(range(*ax, *bx), range(*ay, *by)).collect();
-    println!("    into {:?}", l);
-    l
+    iproduct!(range(*ax, *bx), range(*ay, *by)).collect()
 }
 
 fn explode_path(path: &Path) -> HashSet<Point> {
@@ -60,11 +57,74 @@ fn explode_path(path: &Path) -> HashSet<Point> {
 fn explode_paths(paths: &Vec<Path>) -> HashSet<Point> {
     paths.iter().flat_map(explode_path).collect()
 }
+#[derive(Debug, PartialEq)]
+pub enum Status {
+    Falling,
+    Gone,
+    Stopped,
+}
+
+fn drop_tick(wall: &HashSet<Point>, sand: &HashSet<Point>, p: &mut Point) -> Status {
+    let candidates = [(p.0, p.1 + 1), (p.0 - 1, p.1 + 1), (p.0 + 1, p.1 + 1)];
+    let free_point = candidates
+        .iter()
+        .find(|p| !wall.contains(p) && !sand.contains(p));
+    if let Some(fp) = free_point {
+        let max_y = wall.iter().map(|(_, y)| y).max().unwrap();
+        if max_y <= &fp.1 {
+            return Status::Gone;
+        }
+        *p = *fp;
+        return Status::Falling;
+    }
+    return Status::Stopped;
+}
+
+fn drop_tick2(wall: &HashSet<Point>, sand: &HashSet<Point>, p: &mut Point) -> Status {
+    let candidates = [(p.0, p.1 + 1), (p.0 - 1, p.1 + 1), (p.0 + 1, p.1 + 1)];
+    let free_point = candidates
+        .iter()
+        .find(|p| !wall.contains(p) && !sand.contains(p));
+    if let Some(fp) = free_point {
+        let max_y = wall.iter().map(|(_, y)| y).max().unwrap();
+        *p = *fp;
+        if max_y + 1 == fp.1 {
+            return Status::Stopped;
+        }
+        return Status::Falling;
+    }
+    return Status::Stopped;
+}
+
+fn drop(wall: HashSet<Point>, v: i32) {
+    let mut start = (500, 0);
+    let mut sand = HashSet::new();
+    let drop_v = if v == 1 { drop_tick } else { drop_tick2 };
+    loop {
+        let res = drop_v(&wall, &sand, &mut start);
+        if res == Status::Stopped {
+            sand.insert(start.clone());
+            if start == (500, 0) {
+                println!("sol2: {:?}", sand.len());
+                return;
+            }
+            start = (500, 0);
+        }
+        if res == Status::Gone {
+            println!("sol1: {:?}", sand.len());
+            return;
+        }
+    }
+}
 
 pub fn solution() {
     let input = "498,4 -> 498,6 -> 496,6\n503,4 -> 502,4 -> 502,9 -> 494,9";
-    //let input = "1,1 -> 1,3 -> 3,3";
+    let input =
+        &fs::read_to_string("./input/14.txt").expect("Should have been able to read the file");
     let paths = lines(input).unwrap().1;
     let e = explode_paths(&paths);
-    println!("{:?}", e)
+    let max_y = e.clone().into_iter().map(|(_, y)| y).max().unwrap();
+    println!("dropping to {:?}", max_y);
+    drop(e.clone(), 1);
+    drop(e, 2);
 }
