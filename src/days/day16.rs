@@ -112,12 +112,8 @@ fn do_explore_2(
 ) -> i32 {
     todo.iter()
         .permutations(2)
-        //    iproduct!(todo.iter(), todo.iter())
         .map(|l| {
             let [(next_a, valve_a), (next_b, valve_b)] = *l else {panic!("OH NO")};
-            let mut new_todo = todo.clone();
-            new_todo.remove(next_a);
-            new_todo.remove(next_b);
 
             let d_a = distances
                 .get(&(node_a.clone(), next_a.to_string()))
@@ -129,8 +125,31 @@ fn do_explore_2(
                 .unwrap();
             let remaining_time_b = max(old_remaining_b - d_b - 1, 0);
 
-            return remaining_time_a * valve_a
-                + remaining_time_b * valve_b
+            let value = remaining_time_a * valve_a + remaining_time_b * valve_b;
+
+            if remaining_time_a <= 0 && remaining_time_b <= 0 {
+                return 0;
+            }
+
+            let mut new_todo = todo.clone();
+            if remaining_time_a > 0 {
+                new_todo.remove(next_a);
+            }
+
+            if remaining_time_b > 0 {
+                new_todo.remove(next_b);
+            }
+
+            if remaining_time_a <= 0 {
+                //                println!("Stop a {remaining_time_b}");
+                return do_explore(remaining_time_b, next_b.to_string(), new_todo, distances);
+            }
+            if remaining_time_b <= 0 {
+                //                println!("Stop b {remaining_time_a}");
+                return do_explore(remaining_time_a, next_a.to_string(), new_todo, distances);
+            }
+
+            return value
                 + do_explore_2(
                     remaining_time_a,
                     remaining_time_b,
@@ -163,8 +182,8 @@ Valve GG has flow rate=0; tunnels lead to valves FF, HH
 Valve HH has flow rate=22; tunnel leads to valve GG
 Valve II has flow rate=0; tunnels lead to valves AA, JJ
 Valve JJ has flow rate=21; tunnel leads to valve II";
-    //    let input =
-    //        &fs::read_to_string("./input/16.txt").expect("Should have been able to read the file");
+    let input =
+        &fs::read_to_string("./input/16.txt").expect("Should have been able to read the file");
     let valves = parse_lines(input);
     let valve_map: HashMap<&str, &ValveDef> =
         valves.iter().map(|x @ (i, _, _)| (i.as_str(), x)).collect();
@@ -177,11 +196,38 @@ Valve JJ has flow rate=21; tunnel leads to valve II";
 
     let start = "AA";
     vm.remove(&start);
+    println!("{vm:?}");
     let d = distances(&valve_map);
     let sol1 = do_explore(30, start.to_string(), vm.clone(), &d);
 
     println!("Sol1 {sol1:?}");
 
-    let sol2 = do_explore_2(26, 26, start.to_string(), start.to_string(), vm, &d);
+    let w = vm.clone();
+    let x: Vec<(Vec<(&str, i32)>, Vec<(&str, i32)>)> = vm
+        .clone()
+        .into_iter()
+        .powerset()
+        .map(move |s| {
+            (
+                s.clone().into_iter().collect(),
+                w.clone()
+                    .into_iter()
+                    .filter(move |x| !s.contains(x))
+                    .collect(),
+            )
+        })
+        .collect();
+    let sol2 = x
+        .into_iter()
+        .map(|(todo_a, todo_b)| {
+            let l_a = todo_a.len();
+            let l_b = todo_b.len();
+            println!("{l_a} {l_b}");
+            do_explore(26, start.to_string(), todo_a.into_iter().collect(), &d)
+                + do_explore(26, start.to_string(), todo_b.into_iter().collect(), &d)
+        })
+        .max();
+
+    //    let sol2 = do_explore_2(26, 26, start.to_string(), start.to_string(), vm, &d);
     println!("Sol2 {sol2:?}");
 }
