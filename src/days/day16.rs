@@ -78,8 +78,9 @@ fn distances(tree: &ValveMap) -> HashMap<(String, String), i32> {
     }
     dist
 }
+
 fn do_explore(
-    step: i32,
+    old_remaining: i32,
     node: String,
     todo: HashMap<&str, i32>,
     distances: &HashMap<(String, String), i32>,
@@ -88,18 +89,67 @@ fn do_explore(
         .map(|(next, valve)| {
             let mut new_todo = todo.clone();
             new_todo.remove(next);
-            let path = (node.clone(), next.to_string());
-            //println!("Checking {path:?}");
-            let d = distances.get(&path).unwrap();
-            let remaining_time = 30 - step - d - 1;
-            if remaining_time < 0 {
+
+            let d = distances.get(&(node.clone(), next.to_string())).unwrap();
+            let remaining_time = old_remaining - d - 1;
+            if remaining_time <= 0 {
                 return 0;
             }
             return remaining_time * valve
-                + do_explore(step + d + 1, next.to_string(), new_todo, distances);
+                + do_explore(remaining_time, next.to_string(), new_todo, distances);
         })
         .max()
         .unwrap_or(0)
+}
+
+fn do_explore_2(
+    old_remaining_a: i32,
+    old_remaining_b: i32,
+    node_a: String,
+    node_b: String,
+    todo: HashMap<&str, i32>,
+    distances: &HashMap<(String, String), i32>,
+) -> i32 {
+    todo.iter()
+        .permutations(2)
+        //    iproduct!(todo.iter(), todo.iter())
+        .map(|l| {
+            let [(next_a, valve_a), (next_b, valve_b)] = *l else {panic!("OH NO")};
+            let mut new_todo = todo.clone();
+            new_todo.remove(next_a);
+            new_todo.remove(next_b);
+
+            let d_a = distances
+                .get(&(node_a.clone(), next_a.to_string()))
+                .unwrap();
+            let remaining_time_a = max(old_remaining_a - d_a - 1, 0);
+
+            let d_b = distances
+                .get(&(node_b.clone(), next_b.to_string()))
+                .unwrap();
+            let remaining_time_b = max(old_remaining_b - d_b - 1, 0);
+
+            return remaining_time_a * valve_a
+                + remaining_time_b * valve_b
+                + do_explore_2(
+                    remaining_time_a,
+                    remaining_time_b,
+                    next_a.to_string(),
+                    next_b.to_string(),
+                    new_todo,
+                    distances,
+                );
+        })
+        .max()
+        .unwrap_or(0)
+}
+
+fn max(a: i32, b: i32) -> i32 {
+    if a > b {
+        a
+    } else {
+        b
+    }
 }
 
 pub fn solution() {
@@ -113,8 +163,8 @@ Valve GG has flow rate=0; tunnels lead to valves FF, HH
 Valve HH has flow rate=22; tunnel leads to valve GG
 Valve II has flow rate=0; tunnels lead to valves AA, JJ
 Valve JJ has flow rate=21; tunnel leads to valve II";
-    let input =
-        &fs::read_to_string("./input/16.txt").expect("Should have been able to read the file");
+    //    let input =
+    //        &fs::read_to_string("./input/16.txt").expect("Should have been able to read the file");
     let valves = parse_lines(input);
     let valve_map: HashMap<&str, &ValveDef> =
         valves.iter().map(|x @ (i, _, _)| (i.as_str(), x)).collect();
@@ -128,7 +178,10 @@ Valve JJ has flow rate=21; tunnel leads to valve II";
     let start = "AA";
     vm.remove(&start);
     let d = distances(&valve_map);
-    let sol1 = do_explore(0, start.to_string(), vm, &d);
+    let sol1 = do_explore(30, start.to_string(), vm.clone(), &d);
 
     println!("Sol1 {sol1:?}");
+
+    let sol2 = do_explore_2(26, 26, start.to_string(), start.to_string(), vm, &d);
+    println!("Sol2 {sol2:?}");
 }
