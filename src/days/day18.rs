@@ -102,14 +102,10 @@ fn is_inside(&(x, y, z): &Cube) -> bool {
 
 fn grow(clump: &HashSet<Cube>, growth: &mut HashSet<Cube>, q: &Cube) {
     let neighbors = get_neighbors(q);
-    let foo = growth.clone();
-    let new_growth = neighbors
-        .iter()
-        .filter(|q| is_inside(q))
-        .filter(|q| !clump.contains(q))
-        .filter(|q| !foo.contains(q));
+    let mut new_growth = get_neighbors(q);
+    new_growth.retain(|q| is_inside(q) && !clump.contains(q) && !growth.contains(q));
     growth.extend(new_growth.clone());
     for p in new_growth {
-        grow(clump, growth, p);
+        grow(clump, growth, &p);
     }
 }
