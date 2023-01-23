@@ -2,39 +2,34 @@ use std::fs;
 
 #[derive(Debug)]
 struct Ring {
-    next: Option<usize>,
     ring: Vec<Entry>,
 }
 
-type Entry = (i32, bool);
+type Entry = (i64, usize);
 
 impl Ring {
-    pub fn new(input: &Vec<i32>) -> Self {
+    pub fn new(input: &Vec<i64>) -> Self {
         return Ring {
-            next: Some(0),
-            ring: input.iter().map(|x| (*x, false)).collect(),
+            ring: input.iter().zip(0..).map(|(x, y)| (*x, y)).collect(),
         };
     }
-    fn mix_one(&mut self) -> bool {
-        if let Some(next) = self.next {
-            let len = self.ring.len() as i32;
-            let rel = self.ring[next];
-            let idx = next as i32 + rel.0;
-            let idx = idx.rem_euclid(len - 1);
+    fn mix_one(&mut self, next: usize) {
+        let len = self.ring.len() as i64;
+        let rel = self.ring[next];
+        let idx = next as i64 + rel.0;
+        let idx = idx.rem_euclid(len - 1);
 
-            self.ring.remove(next);
-            self.ring.insert(idx as usize, (rel.0, true));
-            let pos = self.ring.iter().position(|(_, b)| *b == false);
-            self.next = pos;
-            return true;
-        }
-        false
+        self.ring.remove(next);
+        self.ring.insert(idx as usize, (rel.0, rel.1));
     }
+
     fn mix(&mut self) {
-        while true == self.mix_one() {}
+        for next in 0..self.ring.len() {
+            self.mix_one(self.ring.iter().position(|(_, p)| *p == next).unwrap())
+        }
     }
 
-    fn ev(&self) -> i32 {
+    fn ev(&self) -> i64 {
         let p0 = self.ring.iter().position(|(v, _)| *v == 0).unwrap();
         [p0 + 1000, p0 + 2000, p0 + 3000]
             .iter()
@@ -43,7 +38,7 @@ impl Ring {
             .sum()
     }
 
-    fn pp(&self) -> Vec<i32> {
+    fn pp(&self) -> Vec<i64> {
         self.ring.iter().map(|&(x, _)| x).collect()
     }
 }
@@ -54,44 +49,18 @@ pub fn solution() {
     let input = &fs::read_to_string("./input/20.txt")
         .expect("Should have been able to read the file")
         .lines()
-        .map(|x| x.parse::<i32>().unwrap())
+        .map(|x| x.parse::<i64>().unwrap())
         .collect();
-    // println!("{input:?}");
 
     let mut r = Ring::new(&input);
-    println!("{:?}", r.pp());
-
-    // r.mix_one();
-    // println!("{:?}", r.pp());
-    // println!("{:?} expected", [2, 1, -3, 3, -2, 0, 4]);
-    // println!();
-    // r.mix_one();
-    // println!("{:?}", r.pp());
-    // println!("{:?} expected", [1, -3, 2, 3, -2, 0, 4]);
-    // println!();
-    // r.mix_one();
-    // println!("{:?}", r.pp());
-    // println!("{:?} expected", [1, 2, 3, -2, -3, 0, 4]);
-    // println!();
-    // r.mix_one();
-    // println!("{:?}", r.pp());
-    // println!("{:?} expected", [1, 2, -2, -3, 0, 3, 4]);
-    // println!();
-    // r.mix_one();
-    // println!("{:?}", r.pp());
-    // println!("{:?} expected", [1, 2, -3, 0, 3, 4, -2]);
-    // println!();
-    // r.mix_one();
-    // println!("{:?}", r.pp());
-    // println!("{:?} expected", [1, 2, -3, 0, 3, 4, -2]);
-    // println!();
-    // r.mix_one();
-    // println!("{:?}", r.pp());
-    // println!("{:?} expected", [1, 2, -3, 4, 0, 3, -2]);
-    // println!();
 
     r.mix();
-    // println!("{:?}", r.pp());
-    // println!("{:?} expected", [1, 2, -3, 4, 0, 3, -2]);
-    println!("{:?}", r.ev());
+    println!("Sol1 {:?}", r.ev());
+    let len = input.len();
+    let input = input.iter().map(|x| x * 811589153).collect();
+    let mut r = Ring::new(&input);
+    for _ in 0..10 {
+        r.mix();
+    }
+    println!("Sol2 {:?}", r.ev());
 }
